@@ -1,2 +1,5 @@
-body { background:#fafafa; }
+/* רקע עדין לכל הדף */
+body { background: #fafafa; }
+
+/* גובה מינימלי לאיזור התוכן, כדי שלא יראאה "ריק" */
 #app-view { min-height: 40vh; }
