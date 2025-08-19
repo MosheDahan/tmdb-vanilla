@@ -1,7 +1,8 @@
+// js/movie-details.js
 import { movieDetails, movieCredits, posterUrl } from './api.js';
 
 export async function MovieDetailsView(root, { id }) {
-  // שלב טעינה
+  // מצב טעינה התחלתי
   root.innerHTML = `
     <section class="text-center p-4">
       <div class="spinner-border" role="status"></div>
@@ -9,10 +10,10 @@ export async function MovieDetailsView(root, { id }) {
     </section>
   `;
 
-  // עוזרים לפורמט
+  // פונקציות עזר לפורמט
   const fmtYear = (d) => (d || '').slice(0, 4) || '—';
   const fmtRuntime = (min) => {
-    if (!min && min !== 0) return '—';
+    if (min === null || min === undefined) return '—';
     const h = Math.floor(min / 60), m = min % 60;
     return (h ? `${h}ש׳ ` : '') + (m ? `${m}ד׳` : (h ? '' : '—'));
   };
@@ -25,7 +26,6 @@ export async function MovieDetailsView(root, { id }) {
       movieCredits(id),
     ]);
 
-    // נתונים לחישוב
     const title   = details.title || details.name || 'ללא כותרת';
     const year    = fmtYear(details.release_date);
     const runtime = fmtRuntime(details.runtime);
@@ -34,15 +34,14 @@ export async function MovieDetailsView(root, { id }) {
     const genres  = (details.genres || []).map(g => g.name);
     const poster  = posterUrl(details.poster_path);
 
-    // שחקנים מובילים (עד 10), לפי order
     const cast = (credits?.cast || [])
-      .sort((a,b) => (a.order ?? 0) - (b.order ?? 0))
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       .slice(0, 10);
 
-    // HTML
+    // תבנית הדף
     root.innerHTML = `
       <section class="mb-4">
-        <a class="btn btn-sm btn-outline-secondary" href="#/search">← חזרה</a>
+        <a id="back-link" class="btn btn-sm btn-outline-secondary" href="javascript:void(0)">← חזרה</a>
       </section>
 
       <section class="row g-3">
@@ -72,22 +71,36 @@ export async function MovieDetailsView(root, { id }) {
 
           <section>
             <h2 class="h6">שחקנים מובילים</h2>
-            ${cast.length
-              ? `<div>
-                  ${cast.map(p => `<span class="badge text-bg-secondary badge-cast">${p.name}</span>`).join('')}
-                </div>`
-              : `<div class="text-muted">אין פרטי שחקנים.</div>`}
+            ${
+              cast.length
+                ? `<div>
+                     ${cast.map(p => `<span class="badge text-bg-secondary badge-cast">${p.name}</span>`).join('')}
+                   </div>`
+                : `<div class="text-muted">אין פרטי שחקנים.</div>`
+            }
           </section>
         </div>
       </section>
     `;
+
+    // כפתור חזרה חכם: אם יש היסטוריה חוזר אחורה, אחרת הולך לחיפוש
+    const back = root.querySelector('#back-link');
+    back.addEventListener('click', () => {
+      if (history.length > 1) history.back();
+      else location.hash = '#/search';
+    });
   } catch (err) {
     console.error('[MovieDetails] error:', err);
     root.innerHTML = `
       <section class="alert alert-danger">
         שגיאה בטעינת פרטי הסרט. נסה שוב מאוחר יותר.
       </section>
-      <a class="btn btn-sm btn-outline-secondary" href="#/search">← חזרה</a>
+      <a id="back-link" class="btn btn-sm btn-outline-secondary" href="javascript:void(0)">← חזרה</a>
     `;
+    const back = root.querySelector('#back-link');
+    back?.addEventListener('click', () => {
+      if (history.length > 1) history.back();
+      else location.hash = '#/search';
+    });
   }
 }
