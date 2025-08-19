@@ -1,5 +1,6 @@
 // js/movie-details.js
 import { movieDetails, movieCredits, posterUrl } from './api.js';
+import { isFavorite, toggleFavorite } from './favs.js';
 
 export async function MovieDetailsView(root, { id }) {
   // מצב טעינה התחלתי
@@ -33,6 +34,7 @@ export async function MovieDetailsView(root, { id }) {
     const votes   = details.vote_count ?? 0;
     const genres  = (details.genres || []).map(g => g.name);
     const poster  = posterUrl(details.poster_path);
+    const favOn = isFavorite(details.id);
 
     const cast = (credits?.cast || [])
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -40,10 +42,12 @@ export async function MovieDetailsView(root, { id }) {
 
     // תבנית הדף
     root.innerHTML = `
-      <section class="mb-4">
+      <section class="mb-4 d-flex gap-2 flex-wrap">
         <a id="back-link" class="btn btn-sm btn-outline-secondary" href="javascript:void(0)">← חזרה</a>
+        <button id="fav-toggle" class="btn btn-sm ${favOn ? 'btn-warning' : 'btn-outline-warning'}">
+          ${favOn ? 'הסר ⭐' : 'הוסף ⭐'}
+        </button>
       </section>
-
       <section class="row g-3">
         <div class="col-12 col-md-4 col-lg-3">
           <div class="card shadow-sm">
@@ -82,6 +86,7 @@ export async function MovieDetailsView(root, { id }) {
         </div>
       </section>
     `;
+    window.scrollTo({ top: 0, behavior: 'instant' });
 
     // כפתור חזרה חכם: אם יש היסטוריה חוזר אחורה, אחרת הולך לחיפוש
     const back = root.querySelector('#back-link');
@@ -89,6 +94,34 @@ export async function MovieDetailsView(root, { id }) {
       if (history.length > 1) history.back();
       else location.hash = '#/search';
     });
+    // כפתור מועדפים
+const favBtn = root.querySelector('#fav-toggle');
+if (favBtn) {
+  const refresh = () => {
+    const on = isFavorite(details.id);
+    favBtn.classList.toggle('btn-warning', on);
+    favBtn.classList.toggle('btn-outline-warning', !on);
+    favBtn.textContent = on ? 'הסר ⭐' : 'הוסף ⭐';
+    favBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    favBtn.setAttribute('aria-label', on ? 'הסר ממועדפים' : 'הוסף למועדפים');
+  };
+
+  favBtn.addEventListener('click', () => {
+    // שומרים מידע מינימלי הדרוש למסך המועדפים
+    toggleFavorite({
+      id: details.id,
+      title: details.title ?? details.name ?? '',
+      poster_path: details.poster_path ?? null,
+      release_date: details.release_date ?? details.first_air_date ?? '',
+      vote_average: details.vote_average ?? 0,
+      genre_ids: (details.genres || []).map(g => g.id),
+    });
+    refresh();
+  });
+
+  // סנכרון מצב ראשוני
+  refresh();
+}
   } catch (err) {
     console.error('[MovieDetails] error:', err);
     root.innerHTML = `
