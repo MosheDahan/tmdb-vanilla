@@ -3,3 +3,35 @@ body { background: #fafafa; }
 
 /* גובה מינימלי לאיזור התוכן, כדי שלא יראאה "ריק" */
 #app-view { min-height: 40vh; }
+
+/* ===== Movie cards demo ===== */
+.card.h-100 {
+    /* פינות מעוגלות לכל הכרטיסים */
+    border-radius: 14px;
+}
+
+/* תמונת הפוסטר בראש הכרטיס */
+.card-img-top.movie-poster {
+    width: 100%;           /* שהתמונה תתפוס את כל רוחב הכרטיס */
+    aspect-ratio: 2 / 3;   /* יחס 2:3 = 300x450 בערך, שומר על פרופורציה */
+    object-fit: cover;     /* ממלאה את המסגרת עם קרופ עדין */
+    border-top-left-radius: 14px;  /* עיגול פינות כמו הכרטיס */
+    border-top-right-radius: 14px;
+}
+
+/* תגיות ז'אנר - רווחים קטנים */
+.badge-genre {
+    margin-inline-end: .25rem;
+    margin-top: .25rem;
+}
+
+/* קיצור טקסט לשתי שורות (שם הסרט) */
+.text-truncate-2 {
+  display: -webkit-box;        /* דרוש ל-clamp בכרום/ספארי */
+  -webkit-line-clamp: 2;       /* עד שתי שורות */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  /* אופציונלי: נסיוני/עתידי */
+  line-clamp: 2;
+}
